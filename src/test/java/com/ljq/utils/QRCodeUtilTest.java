@@ -12,7 +12,7 @@ public class QRCodeUtilTest {
         String qrCodePath = "src\\resources\\qrCodeDemo-1";
         int width = 300;
         int height = 300;
- 
+
 
         QRCodeUtil.createQRCode(content,qrCodePath,null,width,height);
     }
