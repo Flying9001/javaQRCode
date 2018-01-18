@@ -1,12 +1,12 @@
 package com.ljq.utils;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
+import com.google.zxing.*;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import com.google.zxing.common.HybridBinarizer;
 
+import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -23,9 +23,8 @@ import java.util.Map;
  */
 public class QRCodeUtil {
 
-
     /**
-     * generate QRCode image
+     * generate QRCode image,String content length <= 500
      * @param content the content of the QRCode
      * @param qrCodePath the path of generated QRCode image without filename' extension
      * @param format the extention of the generated QRCode image file
@@ -36,6 +35,10 @@ public class QRCodeUtil {
      * */
     public static boolean createQRCode(String content, String qrCodePath, Format format,int width, int height ){
 
+        // limit content length
+        if(content == null || content.equals("") || content.length() > 500){
+            return false;
+        }
         // QRcode image format
         String qrCodeFormat = "png";
         Map<EncodeHintType,String> hintType  = new HashMap<>();
@@ -54,7 +57,41 @@ public class QRCodeUtil {
             e.printStackTrace();
         }
         return false;
+    }
 
+    /**
+     * decode QRCode from an image file
+     * @param qrCodePath QRCode image file path
+     *
+     * @return string content of QRCode
+     * */
+    public static String decodeQRCode(String qrCodePath){
+
+        if(FileUtil.checkFilePath(qrCodePath).equals("file")){
+            BufferedImage img = null;
+            try {
+                img = ImageIO.read(new File(qrCodePath));
+                if(img != null && img.getWidth() > 0 && img.getHeight() > 0){
+                    LuminanceSource souce = new BufferedImageLuminanceSource(img);
+                    Binarizer binarizer = new HybridBinarizer(souce);
+                    BinaryBitmap bitmap = new BinaryBitmap(binarizer);
+                    Map<DecodeHintType,Object> hintTypeMap  = new HashMap<>();
+                    hintTypeMap.put(DecodeHintType.CHARACTER_SET,"utf-8");
+                    Result result = new MultiFormatReader().decode(bitmap,hintTypeMap);
+                    return result.getText();
+                }
+                return null;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            } catch (NotFoundException e) {
+                e.printStackTrace();
+                return null;
+            } finally {
+                img = null;
+            }
+        }
+        return null;
     }
 
 
